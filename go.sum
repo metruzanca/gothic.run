@@ -1,0 +1,4 @@
+github.com/go-chi/chi/v5 v5.5.0 h1:xdKQ1dJmVJsmgahrXSKhUx8NyVPzpwdlyrrQFpMPJgg=
+github.com/go-chi/chi/v5 v5.5.0/go.mod h1:d1IG7GtKPSjPyBP365PH8sAGVHk3qfB/IhjFNRH1wWM=
+github.com/metruzanca/gothic v0.4.0 h1:wgD2UzR0HzP6D1gdk/W+HKm68VHEIIKbAbqqHJzmqA0=
+github.com/metruzanca/gothic v0.4.0/go.mod h1:RaZ2bEt9PNZ038M/2V8CUNGxeLXBH5QmilpPYP43bvg=

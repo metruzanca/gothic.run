@@ -1,0 +1,228 @@
+package main
+
+import (
+	"github.com/metruzanca/gothic"
+	"github.com/metruzanca/gothic.run/markdown"
+)
+
+type Model struct {
+	Path        string
+	DocTitle    string
+	Description string
+	Wordmark    string
+	Doc         markdown.Document
+	Nav         []NavGroup
+	HomeActive  bool
+	TOC         []TOCItem
+	HasPrev     bool
+	PrevLabel   string
+	PrevHref    string
+	HasNext     bool
+	NextLabel   string
+	NextHref    string
+	HasEdit     bool
+	EditURL     string
+	Version     string
+	VersionURL  string
+	RepoURL     string
+	NotFound    bool
+}
+
+func (m Model) Init() gothic.Cmd { return nil }
+
+func (m Model) Update(msg gothic.Msg) (gothic.Model, gothic.Cmd) {
+	return m, nil
+}
+
+type MarkdownProps struct {
+	Blocks []markdown.Block
+}
+
+type SpansProps struct {
+	Spans []markdown.Span
+}
+
+view Markdown(props MarkdownProps) {
+	<article class="markdown">
+		for i, block := range props.Blocks {
+		<div class="block" key={ i }>
+			if block.Kind == "heading" {
+				if block.Level == 1 {
+					<h1 id={ block.ID }><Spans spans={ block.Spans } /></h1>
+				} else if block.Level == 2 {
+					<h2 id={ block.ID }><Spans spans={ block.Spans } /></h2>
+				} else if block.Level == 3 {
+					<h3 id={ block.ID }><Spans spans={ block.Spans } /></h3>
+				} else {
+					<h4 id={ block.ID }><Spans spans={ block.Spans } /></h4>
+				}
+			} else if block.Kind == "paragraph" {
+				<p><Spans spans={ block.Spans } /></p>
+			} else if block.Kind == "code" {
+				<div class="code">
+					<div class="code-head">
+						<span class="code-lang">{ block.Lang }</span>
+						<button type="button" class="copy" data-copy aria-label="Copy code">Copy</button>
+					</div>
+					<pre><code>{ block.Code }</code></pre>
+				</div>
+			} else if block.Kind == "list" {
+				if block.Ordered {
+					<ol>
+						for j, item := range block.Items {
+							<li key={ j }><Spans spans={ item.Spans } /></li>
+						}
+					</ol>
+				} else {
+					<ul>
+						for j, item := range block.Items {
+							<li key={ j }><Spans spans={ item.Spans } /></li>
+						}
+					</ul>
+				}
+			} else if block.Kind == "table" {
+				<div class="table-wrap">
+					<table>
+						<thead>
+							<tr>
+								for j, cell := range block.Header {
+									<th key={ j }><Spans spans={ cell } /></th>
+								}
+							</tr>
+						</thead>
+						<tbody>
+							for j, row := range block.Rows {
+								<tr key={ j }>
+									for k, cell := range row {
+										<td key={ k }><Spans spans={ cell } /></td>
+									}
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			} else if block.Kind == "quote" {
+				<blockquote><Spans spans={ block.Spans } /></blockquote>
+			} else if block.Kind == "rule" {
+				<hr>
+			} else if block.Kind == "image" {
+				<p class="hero">
+					<img src={ block.Src } alt={ block.Alt } loading="lazy">
+				</p>
+			}
+		</div>
+	}
+	</article>
+}
+
+view Spans(props SpansProps) {
+	<span class="spans">
+		for i, span := range props.Spans {
+			<span class="s" key={ i }>
+				if span.Image {
+					<img src={ span.Href } alt={ span.Alt } loading="lazy" />
+				} else if span.Strong {
+					<strong>
+						if span.Code {
+							<code>{ span.Text }</code>
+						} else if len(span.Href) > 0 {
+							<a href={ span.Href }>{ span.Text }</a>
+						} else {
+							{ span.Text }
+						}
+					</strong>
+				} else if span.Code {
+					if span.Href != "" {
+						<a href={ span.Href }><code>{ span.Text }</code></a>
+					} else {
+						<code>{ span.Text }</code>
+					}
+				} else if len(span.Href) > 0 {
+					<a href={ span.Href }>{ span.Text }</a>
+				} else if span.Em {
+					<em>{ span.Text }</em>
+				} else {
+					{ span.Text }
+				}
+			</span>
+		}
+	</span>
+}
+
+view App(model Model) {
+	<div class="shell">
+		<a class="skip" href="#content">Skip to content</a>
+		<header class="topbar">
+			<button type="button" class="nav-toggle" data-nav-toggle aria-label="Toggle navigation">Menu</button>
+			<a class="brand" href="/">
+				<img class="brand-wordmark" src={ model.Wordmark } alt="Gothic">
+				<span class="brand-suffix">docs</span>
+			</a>
+			<nav class="topbar-links">
+				<a href={ model.RepoURL }>GitHub</a>
+				<button type="button" class="theme" data-theme-toggle aria-label="Toggle color theme">Theme</button>
+			</nav>
+		</header>
+		<div class="columns">
+			<aside class="sidebar">
+				<nav class="nav" aria-label="Documentation">
+					<ul class="nav-home">
+						<li><a class="nav-link" class:active={ model.HomeActive } href="/">Home</a></li>
+					</ul>
+					for _, group := range model.Nav {
+						<div class="nav-group" key={ group.Title }>
+							<p class="nav-title">{ group.Title }</p>
+							<ul>
+								for _, item := range group.Items {
+									<li key={ item.Href }>
+										<a class="nav-link" class:active={ item.Active } href={ item.Href }>{ item.Label }</a>
+									</li>
+								}
+							</ul>
+						</div>
+					}
+				</nav>
+				<p class="sidebar-foot">Docs for <a href={ model.VersionURL }>{ model.Version }</a></p>
+			</aside>
+			<main class="main" id="content">
+				<div class="page">
+					<Markdown blocks={ model.Doc.Blocks } />
+					if model.HasPrev || model.HasNext {
+						<nav class="pager" aria-label="Pagination">
+							if model.HasPrev {
+								<a class="pager-link pager-prev" href={ model.PrevHref }>
+									<span class="pager-label">Previous</span>
+									<strong>{ model.PrevLabel }</strong>
+								</a>
+							}
+							if model.HasNext {
+								<a class="pager-link pager-next" href={ model.NextHref }>
+									<span class="pager-label">Next</span>
+									<strong>{ model.NextLabel }</strong>
+								</a>
+							}
+						</nav>
+					}
+					<footer class="page-foot">
+						if model.HasEdit {
+							<a href={ model.EditURL }>Edit this page on GitHub</a>
+						}
+						<span>Gothic { model.Version }</span>
+					</footer>
+				</div>
+				if len(model.TOC) > 0 {
+					<aside class="toc">
+						<p class="toc-title">On this page</p>
+						<ul>
+							for i, item := range model.TOC {
+								<li class="toc-item" class:toc-sub={ item.Level >= 3 } key={ i }>
+									<a href={ item.Href }>{ item.Text }</a>
+								</li>
+							}
+						</ul>
+					</aside>
+				}
+			</main>
+		</div>
+	</div>
+}

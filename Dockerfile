@@ -14,6 +14,7 @@ RUN set -eux; \
 	git clone --depth 1 --branch "$version" https://github.com/metruzanca/gothic.git /gothic
 
 COPY . .
+RUN go generate ./...
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-w -s" -o /out/gothic.run .
 
 FROM alpine:3.22

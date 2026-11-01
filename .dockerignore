@@ -1,4 +1,7 @@
 .git
 content
+app_gothic.go
+app_gothic.js
+app_components_gothic.js
 gothic.run
 *.test

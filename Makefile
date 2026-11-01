@@ -6,11 +6,11 @@ docs:
 generate:
 	go generate ./...
 
-test: docs
+test: generate docs
 	go test ./...
 
-run: docs
+run: generate docs
 	go run .
 
-build:
+build: generate
 	go build -o gothic.run .

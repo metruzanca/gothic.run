@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/kaugesaar/lucide-go"
@@ -20,7 +21,7 @@ import (
 )
 
 //go:embed style.css
-var styleCSS []byte
+var baseCSS []byte
 
 //go:embed assets/gothic-wordmark.svg
 var wordmarkSVG []byte
@@ -34,6 +35,7 @@ var ogPNG []byte
 // Asset URLs carry a content hash so a deploy is never served a stale
 // stylesheet or social card from the Railway edge cache.
 var (
+	styleCSS     = append(append([]byte{}, chromaCSS()...), baseCSS...)
 	styleHref    = assetHref("/style.css", styleCSS)
 	wordmarkHref = assetHref("/gothic-wordmark.svg", wordmarkSVG)
 	ogImageHref  = assetHref("/og.png", ogPNG)
@@ -158,7 +160,7 @@ func pageHandler(site *Site) http.HandlerFunc {
 			Styles:      []string{styleHref},
 			ExtraHead:   headScript,
 		}
-		if err := gothic.WriteDocument(w, r, doc, staticHTML(App(model))); err != nil {
+		if err := gothic.WriteDocument(w, r, doc, staticHTML(App(model), site.CodeFor(r.URL.Path))); err != nil {
 			log.Printf("render %s: %v", r.URL.Path, err)
 		}
 	}
@@ -172,12 +174,13 @@ var (
 	moduleScript    = regexp.MustCompile(`(?s)\n?<script type="module" src="[^"]*/_gothic/modules/[^"]+"></script>`)
 	gothicMarker    = regexp.MustCompile(`(?s)<!--g:.*?-->`)
 	gothicDataAttrs = regexp.MustCompile(` data-gothic-[a-z0-9-]+="[^"]*"`)
+	codeSlot        = regexp.MustCompile(`(?s)<code[^>]*data-code="([0-9]+)"[^>]*></code>`)
 )
 
 // staticHTML renders a gothic view and removes the hydration payload, module
 // script, and bookkeeping markers. The docs site has no client state, so every
 // page is fully server rendered and ships no application JavaScript.
-func staticHTML(view gothic.Component) gothic.Component {
+func staticHTML(view gothic.Component, code map[int]string) gothic.Component {
 	return gothic.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		var buf bytes.Buffer
 		if err := view.Render(ctx, &buf); err != nil {
@@ -189,6 +192,11 @@ func staticHTML(view gothic.Component) gothic.Component {
 		html = gothicMarker.ReplaceAllString(html, "")
 		html = gothicDataAttrs.ReplaceAllString(html, "")
 		html = strings.ReplaceAll(html, `<span data-icon="menu"></span>`, menuIcon)
+		html = codeSlot.ReplaceAllStringFunc(html, func(tag string) string {
+			match := codeSlot.FindStringSubmatch(tag)
+			index, _ := strconv.Atoi(match[1])
+			return `<code class="chroma">` + code[index] + `</code>`
+		})
 		_, err := io.WriteString(w, html)
 		return err
 	})

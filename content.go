@@ -71,6 +71,7 @@ type NavLink struct {
 type Page struct {
 	Source      Source
 	Doc         markdown.Document
+	Code        map[int]string
 	Description string
 	TOC         []TOCItem
 	EditURL     string
@@ -124,6 +125,12 @@ func newSite(fsys fs.FS, list []Source, ref string) (*Site, error) {
 	for _, route := range s.Order {
 		page := s.Pages[route]
 		page.Doc = s.resolveDocument(page, page.Doc)
+		page.Code = make(map[int]string)
+		for i, block := range page.Doc.Blocks {
+			if block.Kind == markdown.KindCode {
+				page.Code[i] = highlight(block.Code, block.Lang)
+			}
+		}
 	}
 
 	for _, source := range list {
@@ -163,6 +170,15 @@ func newSite(fsys fs.FS, list []Source, ref string) (*Site, error) {
 	}
 
 	return s, nil
+}
+
+// CodeFor returns the highlighted code blocks for a route, keyed by block
+// index. Unknown routes return nil.
+func (s *Site) CodeFor(route string) map[int]string {
+	if page, ok := s.Pages[cleanRoute(route)]; ok {
+		return page.Code
+	}
+	return nil
 }
 
 // ModelAt builds the model for a route. The second result is false when the

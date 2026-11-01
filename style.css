@@ -220,8 +220,8 @@ button {
 	list-style: none;
 }
 
-.nav-home {
-	margin-bottom: 22px;
+.nav ul.nav-home {
+	margin-bottom: 40px;
 }
 
 .nav-group {
@@ -456,6 +456,11 @@ button {
 	background: none;
 	font-size: 1em;
 	white-space: pre;
+}
+
+.code .chroma .err {
+	color: inherit !important;
+	background: transparent !important;
 }
 
 /* Tables */

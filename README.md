@@ -88,6 +88,19 @@ the mobile navigation drawer, all from the small delegated script in `main.go`.
 The generated `app_gothic.js` exists during the build because the gothic
 compiler always writes it, but the site never commits, ships, or loads it.
 
+## Syntax highlighting
+
+Code fences are highlighted at startup with
+[`chroma`](https://github.com/alecthomas/chroma). The fence language selects the
+lexer, with `sh` mapped to bash. `templ` fences are split at the first top-level
+`view` line: the Go prelude is highlighted as Go and the views as HTML, because
+Chroma has no gothic lexer.
+
+Light and dark token styles are generated from Chroma's `github` and
+`github-dark` themes and prepended to `style.css`. Dark rules are scoped so the
+system preference and the explicit theme toggle both work. Unlabelled fences
+stay plain text.
+
 ## Icons
 
 The mobile navigation trigger uses the `Menu` glyph from

@@ -64,7 +64,7 @@ view Markdown(props MarkdownProps) {
 						<span class="code-lang">{ block.Lang }</span>
 						<button type="button" class="copy" data-copy aria-label="Copy code">Copy</button>
 					</div>
-					<pre><code>{ block.Code }</code></pre>
+					<pre><code class="chroma" data-code={ i }></code></pre>
 				</div>
 			} else if block.Kind == "list" {
 				if block.Ordered {

@@ -117,6 +117,9 @@ func TestGuidePage(t *testing.T) {
 	if strings.Contains(raw, "data-icon") {
 		t.Errorf("page still contains an icon placeholder")
 	}
+	if strings.Contains(raw, "data-code") {
+		t.Errorf("page still contains a code placeholder")
+	}
 	for _, want := range []string{
 		`aria-controls="sidebar"`,
 		`class="nav-toggle"`,
@@ -139,7 +142,7 @@ func TestGuidePage(t *testing.T) {
 		`On this page`,
 		`<table>`,
 		`<blockquote>`,
-		`<code>go get github.com/metruzanca/gothic</code>`,
+		`class="chroma">go get github.com/metruzanca/gothic</code>`,
 		`class="pager-link pager-prev"`,
 		`class="pager-link pager-next"`,
 		`Edit this page on GitHub`,
@@ -190,6 +193,27 @@ func TestAssets(t *testing.T) {
 		status, body := get(t, ts.URL+path)
 		if status != http.StatusOK || body == "" {
 			t.Errorf("GET %s = %d, %d bytes", path, status, len(body))
+		}
+	}
+}
+
+func TestHighlight(t *testing.T) {
+	got := highlight("package main", "go")
+	for _, want := range []string{`class="kn"`, `class="nx"`, "package", "main"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("highlighted go missing %q: %s", want, got)
+		}
+	}
+	if got := highlight("<div>", ""); got != "&lt;div&gt;" {
+		t.Errorf("plain fallback = %q", got)
+	}
+	if got := highlight("<div>", "templ"); !strings.Contains(got, `class="p"`) {
+		t.Errorf("templ alias did not highlight html: %s", got)
+	}
+	rendered := string(chromaCSS())
+	for _, want := range []string{`.chroma`, `:root[data-theme="dark"] .chroma`, `prefers-color-scheme: dark`} {
+		if !strings.Contains(rendered, want) {
+			t.Errorf("chroma css missing %q", want)
 		}
 	}
 }

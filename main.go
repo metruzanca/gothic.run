@@ -13,7 +13,9 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 
+	"github.com/kaugesaar/lucide-go"
 	"github.com/metruzanca/gothic"
 )
 
@@ -86,13 +88,23 @@ const headScript = `<script>
 
 		const navButton = event.target.closest('[data-nav-toggle]');
 		if (navButton) {
-			document.body.classList.toggle('nav-open');
+			const open = document.body.classList.toggle('nav-open');
+			navButton.setAttribute('aria-expanded', open ? 'true' : 'false');
 			return;
 		}
 
 		if (event.target.closest('.sidebar a')) {
 			document.body.classList.remove('nav-open');
+			const toggle = document.querySelector('[data-nav-toggle]');
+			if (toggle) toggle.setAttribute('aria-expanded', 'false');
 		}
+	});
+
+	document.addEventListener('keydown', (event) => {
+		if (event.key !== 'Escape') return;
+		document.body.classList.remove('nav-open');
+		const toggle = document.querySelector('[data-nav-toggle]');
+		if (toggle) toggle.setAttribute('aria-expanded', 'false');
 	});
 })();
 </script>`
@@ -152,6 +164,9 @@ func pageHandler(site *Site) http.HandlerFunc {
 	}
 }
 
+// menuIcon is the lucide menu glyph used by the mobile navigation trigger.
+var menuIcon = string(lucide.Menu(lucide.Options{Size: 20, Color: "currentColor", Class: "nav-icon"}))
+
 var (
 	stateScript     = regexp.MustCompile(`(?s)<script type="application/json" data-gothic-state="[^"]*">.*?</script>`)
 	moduleScript    = regexp.MustCompile(`(?s)\n?<script type="module" src="[^"]*/_gothic/modules/[^"]+"></script>`)
@@ -173,6 +188,7 @@ func staticHTML(view gothic.Component) gothic.Component {
 		html = moduleScript.ReplaceAllString(html, "")
 		html = gothicMarker.ReplaceAllString(html, "")
 		html = gothicDataAttrs.ReplaceAllString(html, "")
+		html = strings.ReplaceAll(html, `<span data-icon="menu"></span>`, menuIcon)
 		_, err := io.WriteString(w, html)
 		return err
 	})

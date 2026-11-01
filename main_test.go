@@ -114,6 +114,21 @@ func TestGuidePage(t *testing.T) {
 	if strings.Contains(raw, "<!--g:") || strings.Contains(raw, "data-gothic-") {
 		t.Errorf("page still contains gothic hydration markers")
 	}
+	if strings.Contains(raw, "data-icon") {
+		t.Errorf("page still contains an icon placeholder")
+	}
+	for _, want := range []string{
+		`aria-controls="sidebar"`,
+		`class="nav-toggle"`,
+		`<svg xmlns="http://www.w3.org/2000/svg"`,
+		`class="nav-icon"`,
+		`Docs for <a href="https://github.com/metruzanca/gothic/tree/v0.4.0">v0.4.0</a>`,
+		`<span>Gothic v0.4.0</span>`,
+	} {
+		if !strings.Contains(raw, want) {
+			t.Errorf("page missing %q", want)
+		}
+	}
 	html := clean(raw)
 	for _, want := range []string{
 		"<title>Quickstart · Gothic Docs</title>",

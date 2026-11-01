@@ -153,7 +153,9 @@ view App(model Model) {
 	<div class="shell">
 		<a class="skip" href="#content">Skip to content</a>
 		<header class="topbar">
-			<button type="button" class="nav-toggle" data-nav-toggle aria-label="Toggle navigation">Menu</button>
+			<button type="button" class="nav-toggle" data-nav-toggle aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false">
+				<span data-icon="menu"></span>
+			</button>
 			<a class="brand" href="/">
 				<img class="brand-wordmark" src={ model.Wordmark } alt="Gothic">
 				<span class="brand-suffix">docs</span>
@@ -164,7 +166,7 @@ view App(model Model) {
 			</nav>
 		</header>
 		<div class="columns">
-			<aside class="sidebar">
+			<aside class="sidebar" id="sidebar">
 				<nav class="nav" aria-label="Documentation">
 					<ul class="nav-home">
 						<li><a class="nav-link" class:active={ model.HomeActive } href="/">Home</a></li>
@@ -182,7 +184,7 @@ view App(model Model) {
 						</div>
 					}
 				</nav>
-				<p class="sidebar-foot">Docs for <a href={ model.VersionURL }>{ model.Version }</a></p>
+				<p class="sidebar-foot">Docs for{ " " }<a href={ model.VersionURL }>{ model.Version }</a></p>
 			</aside>
 			<main class="main" id="content">
 				<div class="page">
@@ -207,7 +209,7 @@ view App(model Model) {
 						if model.HasEdit {
 							<a href={ model.EditURL }>Edit this page on GitHub</a>
 						}
-						<span>Gothic { model.Version }</span>
+						<span>Gothic{ " " }{ model.Version }</span>
 					</footer>
 				</div>
 				if len(model.TOC) > 0 {

@@ -87,3 +87,12 @@ the mobile navigation drawer, all from the small delegated script in `main.go`.
 
 The generated `app_gothic.js` exists during the build because the gothic
 compiler always writes it, but the site never commits, ships, or loads it.
+
+## Icons
+
+The mobile navigation trigger uses the `Menu` glyph from
+[`github.com/kaugesaar/lucide-go`](https://github.com/kaugesaar/lucide-go).
+Gothic escapes interpolations, so the view contains an empty
+`<span data-icon="menu"></span>` placeholder and `staticHTML` replaces it with
+the inline SVG returned by lucide. Add another placeholder and replacement when
+the site needs another icon.
